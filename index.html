@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>Superstore Radial Tidy Tree</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<style>
+  body {
+    background-color: #0a0e1a;
+    color: white;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+</style>
+<body>
+<div id="chart"></div>
+<script>
+
+const data = {"name":"Superstore","children":[{"name":"2023","children":[{"name":"Q1","children":[{"name":"Furniture","value":65,"sales":23964.22,"profit":19.65},{"name":"Office Supplies","value":184,"sales":14535.16,"profit":2238.56},{"name":"Technology","value":40,"sales":37472.47,"profit":1836.93}]},{"name":"Q2","children":[{"name":"Furniture","value":84,"sales":29655.57,"profit":912.39},{"name":"Office Supplies","value":244,"sales":32054.55,"profit":6109.58},{"name":"Technology","value":75,"sales":27574.47,"profit":4663.02}]},{"name":"Q3","children":[{"name":"Furniture","value":113,"sales":41957.88,"profit":2896.32},{"name":"Office Supplies","value":358,"sales":54996.09,"profit":7456.66},{"name":"Technology","value":103,"sales":48581.2,"profit":3164.39}]},{"name":"Q4","children":[{"name":"Furniture","value":183,"sales":66547.14,"profit":2056.21},{"name":"Office Supplies","value":458,"sales":52428.17,"profit":7684.51},{"name":"Technology","value":144,"sales":64273.29,"profit":12646.06}]}]},{"name":"2024","children":[{"name":"Q1","children":[{"name":"Furniture","value":59,"sales":28682.17,"profit":-942.09},{"name":"Office Supplies","value":156,"sales":23082.03,"profit":7820.75},{"name":"Technology","value":54,"sales":18627.75,"profit":2676.0}]},{"name":"Q2","children":[{"name":"Furniture","value":91,"sales":27608.73,"profit":846.63},{"name":"Office Supplies","value":271,"sales":32391.4,"profit":5393.57},{"name":"Technology","value":86,"sales":29239.32,"profit":5959.99}]},{"name":"Q3","children":[{"name":"Furniture","value":132,"sales":49586.04,"profit":537.55},{"name":"Office Supplies","value":364,"sales":35950.61,"profit":5387.1},{"name":"Technology","value":101,"sales":44912.73,"profit":10955.65}]},{"name":"Q4","children":[{"name":"Furniture","value":180,"sales":66453.36,"profit":2837.88},{"name":"Office Supplies","value":466,"sales":46246.17,"profit":6576.45},{"name":"Technology","value":170,"sales":70212.73,"profit":13971.49}]}]},{"name":"2025","children":[{"name":"Q1","children":[{"name":"Furniture","value":88,"sales":25729.76,"profit":249.08},{"name":"Office Supplies","value":180,"sales":29454.12,"profit":4000.99},{"name":"Technology","value":76,"sales":39656.33,"profit":7378.43}]},{"name":"Q2","children":[{"name":"Furniture","value":121,"sales":41681.86,"profit":2176.2},{"name":"Office Supplies","value":384,"sales":35031.94,"profit":3875.69},{"name":"Technology","value":100,"sales":60095.35,"profit":10542.79}]},{"name":"Q3","children":[{"name":"Furniture","value":153,"sales":52926.22,"profit":1270.93},{"name":"Office Supplies","value":476,"sales":46787.95,"profit":6867.51},{"name":"Technology","value":121,"sales":45824.81,"profit":8109.05}]},{"name":"Q4","children":[{"name":"Furniture","value":219,"sales":80641.89,"profit":3520.03},{"name":"Office Supplies","value":552,"sales":75099.68,"profit":20869.03},{"name":"Technology","value":164,"sales":81003.68,"profit":13805.5}]}]},{"name":"2026","children":[{"name":"Q1","children":[{"name":"Furniture","value":96,"sales":25264.54,"profit":947.47},{"name":"Office Supplies","value":308,"sales":43626.09,"profit":7038.88},{"name":"Technology","value":109,"sales":56398.2,"profit":15872.26}]},{"name":"Q2","children":[{"name":"Furniture","value":151,"sales":45814.86,"profit":964.99},{"name":"Office Supplies","value":431,"sales":45821.47,"profit":9938.98},{"name":"Technology","value":115,"sales":43354.28,"profit":4599.93}]},{"name":"Q3","children":[{"name":"Furniture","value":176,"sales":57014.41,"profit":2278.67},{"name":"Office Supplies","value":563,"sales":73318.68,"profit":13928.13},{"name":"Technology","value":179,"sales":67850.69,"profit":11338.58}]},{"name":"Q4","children":[{"name":"Furniture","value":290,"sales":91219.12,"profit":-841.89},{"name":"Office Supplies","value":733,"sales":91069.2,"profit":10837.03},{"name":"Technology","value":228,"sales":104816.0,"profit":19023.31}]}]}]};
+
+{
+  const width = 928;
+  const height = width;
+  const cx = width * 0.5;
+  const cy = height * 0.5;
+  const radius = Math.min(width, height) / 2 - 120;
+
+  const tree = d3.tree()
+      .size([2 * Math.PI, radius])
+      .separation((a, b) => (a.parent == b.parent ? 1 : 2) / a.depth);
+
+  const root = tree(d3.hierarchy(data)
+      .sort((a, b) => d3.ascending(a.data.name, b.data.name)));
+
+  const svg = d3.select("#chart").append("svg")
+      .attr("width", width)
+      .attr("height", height)
+      .attr("viewBox", [-cx, -cy, width, height])
+      .attr("style", "width: 100%; height: auto; font: 12px 'Segoe UI', Arial, sans-serif; background: #0a0e1a; border-radius: 16px;");
+
+  svg.append("g")
+      .attr("fill", "none")
+      .attr("stroke", "#334155")
+      .attr("stroke-opacity", 0.8)
+      .attr("stroke-width", 1.2)
+    .selectAll()
+    .data(root.links())
+    .join("path")
+      .attr("d", d3.linkRadial()
+          .angle(d => d.x)
+          .radius(d => d.y));
+
+  svg.append("g")
+    .selectAll()
+    .data(root.descendants())
+    .join("circle")
+      .attr("transform", d => `rotate(${d.x * 180 / Math.PI - 90}) translate(${d.y},0)`)
+      .attr("fill", d => {
+        if (!d.parent) return "#00e5a0";
+        if (d.depth === 1) return "#fbbf24";
+        if (d.depth === 2) return "#34d399";
+        if (d.data.name === "Furniture") return "#f97316";
+        if (d.data.name === "Technology") return "#60a5fa";
+        if (d.data.name === "Office Supplies") return "#a78bfa";
+        return "#999";
+      })
+      .attr("stroke", d => {
+        if (!d.parent) return "#00e5a0";
+        if (d.depth === 1) return "#fbbf24";
+        if (d.depth === 2) return "#34d399";
+        if (d.data.name === "Furniture") return "#f97316";
+        if (d.data.name === "Technology") return "#60a5fa";
+        if (d.data.name === "Office Supplies") return "#a78bfa";
+        return "#999";
+      })
+      .attr("stroke-opacity", 0.3)
+      .attr("stroke-width", 6)
+      .attr("r", d => {
+        if (d.depth === 0) return 10;
+        if (d.depth === 1) return 7;
+        if (d.depth === 2) return 5;
+        return 4;
+      });
+
+  svg.append("g")
+      .attr("stroke-linejoin", "round")
+      .attr("stroke-width", 4)
+    .selectAll()
+    .data(root.descendants())
+    .join("text")
+      .attr("transform", d => `rotate(${d.x * 180 / Math.PI - 90}) translate(${d.y},0) rotate(${d.x >= Math.PI ? 180 : 0})`)
+      .attr("dy", "0.31em")
+      .attr("x", d => d.x < Math.PI === !d.children ? 6 : -6)
+      .attr("text-anchor", d => d.x < Math.PI === !d.children ? "start" : "end")
+      .attr("paint-order", "stroke")
+      .attr("stroke", "#0a0e1a")
+      .attr("fill", d => {
+        if (!d.parent) return "#00e5a0";
+        if (d.depth === 1) return "#fbbf24";
+        if (d.depth === 2) return "#34d399";
+        if (d.data.name === "Furniture") return "#f97316";
+        if (d.data.name === "Technology") return "#60a5fa";
+        if (d.data.name === "Office Supplies") return "#a78bfa";
+        return "#cbd5e1";
+      })
+      .attr("font-weight", d => d.depth <= 1 ? "700" : "400")
+      .attr("font-size", d => {
+        if (d.depth === 0) return "14px";
+        if (d.depth === 1) return "13px";
+        if (d.depth === 2) return "11px";
+        return "10px";
+      })
+      .text(d => d.data.name);
+}
+</script>
+</body>
